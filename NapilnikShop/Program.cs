@@ -52,36 +52,47 @@ namespace NapilnikShop
 
     class Warehouse
     {
-        private List<Cell> _cells = new List<Cell>();
+        private Dictionary<Good, int> _cells = new Dictionary<Good, int>();
 
         private const int MinCountProduct = 0;
 
-        public List<Cell> Cells => _cells;
+        public Dictionary<Good, int> Cells => _cells;
 
         public void Delive(Good product, int count)
         {
             if (count <= MinCountProduct)
                 return;
 
-            _cells.Add(new Cell(product, count));
+            _cells.Add(product, count);
         }
 
         public void ShowInfo()
         {
             Console.WriteLine("На складе:\n");
 
-            for (int i = 0; i < _cells.Count; i++)
+            foreach (var item in _cells)
+                Console.WriteLine($"Продукт - {item.Key.ProductName} Колличество {item.Value}");
+        }
+
+        public bool TryGetCell(Good product, int countProducts)
+        {
+            bool haveCell = false;
+
+            foreach (var item in _cells)
             {
-                _cells[i].ShowInfo();
-                Console.WriteLine();
+                if (item.Key == product && item.Value > countProducts)
+                {
+                    haveCell = true;
+                }
             }
+            return haveCell;
         }
     }
 
     class Cart
     {
-        private List<Cell> _cells = new List<Cell>();
-        private Warehouse _warehouse = new Warehouse();
+        private Dictionary<Good, int> _cells = new Dictionary<Good, int>();
+        private Warehouse _warehouse;
 
         public void Init(Warehouse warehouse)
         {
@@ -98,55 +109,33 @@ namespace NapilnikShop
         {
             Console.WriteLine("\nВ корзине:\n");
 
-            for (int i = 0; i < _cells.Count; i++)
-            {
-                _cells[i].ShowInfo();
-            }
+            foreach (var item in _cells)
+                Console.WriteLine($"Продукт - {item.Key.ProductName} Колличество {item.Value}");
         }
 
         public void Add(Good product, int count)
         {
-            if (TryGetCell(out Cell cell, product, count) == true)
+            if (_warehouse.TryGetCell(product, count) == true)
             {
-                _cells.Add(cell);
-                Console.WriteLine($"\nТовар {cell.Good.ProductName} " +
-                $"успешно добавлен в колличестве {cell.CountProduct} штук\n");
+                RemoveDuplicate(product);
+                _cells.Add(product, count);
+                Console.WriteLine($"\nТовар {product.ProductName} " +
+                 $"успешно добавлен в колличестве {count} штук\n");
             }
             else
             {
-                Console.WriteLine("Ошибка - нет необходимого колличества или нет товара");
+                Console.WriteLine("Ошибка - введено не верное количество или наименование товара");
             }
         }
 
-        private bool TryGetCell(out Cell cell, Good productName, int countProduct)
+        private void RemoveDuplicate(Good product)
         {
-            cell = null;
-
-            for (int i = 0; i < _warehouse.Cells.Count; i++)
+            foreach (var item in _cells)
             {
-                if (_warehouse.Cells[i].Good == productName && _warehouse.Cells[i].CountProduct > countProduct)
-                {
-                    cell = new Cell(productName, countProduct);
-                }
+                if (item.Key == product)
+                    _cells.Remove(product);
+                return;
             }
-            return cell != null;
-        }
-    }
-
-    class Cell
-    {
-        public Good Good { get; private set; }
-        public int CountProduct { get; private set; }
-
-        public Cell(Good good, int countProduct)
-        {
-            Good = good;
-            CountProduct = countProduct;
-        }
-
-        public void ShowInfo()
-        {
-            Console.WriteLine($"Товар - {Good.ProductName};\nКолличество - {CountProduct}");
         }
     }
 
