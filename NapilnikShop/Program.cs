@@ -76,16 +76,10 @@ namespace NapilnikShop
 
         public bool TryGetCell(Good product, int countProducts)
         {
-            bool haveCell = false;
+            if (_cells.ContainsKey(product) && _cells[product] > countProducts)
+                return true;
 
-            foreach (var item in _cells)
-            {
-                if (item.Key == product && item.Value > countProducts)
-                {
-                    haveCell = true;
-                }
-            }
-            return haveCell;
+            return false;
         }
     }
 
